@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:uplink_flutter/models/stop.dart';
 import 'package:uplink_flutter/layouts/stopView.dart';
+import 'package:uplink_flutter/layouts/onboardingView.dart';
 
 class MainView extends StatelessWidget {
   @override
@@ -50,10 +51,15 @@ class HomeViewState extends State<HomeView> {
     final String lastCheck = prefs.getString('lastCheck') ?? null;
 
     if(lastCheck == null){
-      Scaffold.of(context).showSnackBar(SnackBar(
-        content: new Text('no lastCheck'),
-        duration: Duration(seconds:20),
-      ));
+      // No data, start onboarding
+      Navigator.push(
+        context,
+        new MaterialPageRoute(builder: (context) => new OnboardingView()),
+      );
+//      Scaffold.of(context).showSnackBar(SnackBar(
+//        content: new Text('no lastCheck'),
+//        duration: Duration(seconds:20),
+//      ));
     }
   }
 
