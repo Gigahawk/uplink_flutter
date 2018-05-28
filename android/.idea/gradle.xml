@@ -7,9 +7,9 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
+            <option value="$PROJECT_DIR$/../../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences-0.4.1/android" />
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="/opt/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences-0.4.1/android" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
