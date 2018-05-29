@@ -1,0 +1,42 @@
+SELECT trips.trip_headsign FROM trips
+JOIN stop_times ON trips.trip_id = stop_times.trip_id
+JOIN stops ON stop_times.stop_id = stops.stop_id
+WHERE stops.stop_id = 1877;
+
+SELECT routes.route_short_name FROM routes
+JOIN routes ON routes.route_id = trips.route_id
+JOIN stop_times ON trips.trip_id = stop_times.trip_id
+JOIN stops ON stop_times.stop_id = stops.stop_id
+WHERE stops.stop_id = 1877;
+
+SELECT routes.route_short_name FROM routes
+JOIN trips ON routes.route_id = trips.route_id
+JOIN stop_times ON trips.trip_id = stop_times.trip_id
+JOIN stops ON stop_times.stop_id = stops.stop_id
+WHERE stops.stop_id = 1877;
+
+SELECT DISTINCT routes.route_short_name, stops.stop_code, stops.stop_name FROM routes
+JOIN trips ON routes.route_id = trips.route_id
+JOIN stop_times ON trips.trip_id = stop_times.trip_id
+JOIN stops ON stop_times.stop_id = stops.stop_id
+
+CREATE TABLE true_stops AS
+	SELECT DISTINCT routes.route_short_name, stops.stop_code, stops.stop_name FROM routes
+	JOIN trips ON routes.route_id = trips.route_id
+	JOIN stop_times ON trips.trip_id = stop_times.trip_id
+	JOIN stops ON stop_times.stop_id = stops.stop_id;
+
+CREATE TABLE routes
+(
+  "route_id" TEXT,
+  "agency_id" TEXT,
+  "route_short_name" TEXT,
+  "route_long_name" TEXT,
+  "route_desc" TEXT,
+  "route_type" TEXT,
+  "route_url" TEXT,
+  "route_color" TEXT,
+  "route_text_color" TEXT,
+
+  FOREIGN KEY ("route_id")
+ ;
