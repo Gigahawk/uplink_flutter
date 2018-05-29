@@ -58,6 +58,13 @@
             </list>
           </value>
         </entry>
+        <entry key="cookie_jar">
+          <value>
+            <list>
+              <option value="$PROJECT_DIR$/../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/cookie_jar-0.0.4/lib" />
+            </list>
+          </value>
+        </entry>
         <entry key="crypto">
           <value>
             <list>
@@ -72,10 +79,24 @@
             </list>
           </value>
         </entry>
+        <entry key="csv">
+          <value>
+            <list>
+              <option value="$PROJECT_DIR$/../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/csv-3.1.2/lib" />
+            </list>
+          </value>
+        </entry>
         <entry key="cupertino_icons">
           <value>
             <list>
               <option value="$PROJECT_DIR$/../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/cupertino_icons-0.1.2/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="dio">
+          <value>
+            <list>
+              <option value="$PROJECT_DIR$/../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/dio-0.0.14/lib" />
             </list>
           </value>
         </entry>
@@ -405,9 +426,12 @@
       <root url="file://$PROJECT_DIR$/../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/charcode-1.1.1/lib" />
       <root url="file://$PROJECT_DIR$/../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/collection-1.14.6/lib" />
       <root url="file://$PROJECT_DIR$/../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/convert-2.0.1/lib" />
+      <root url="file://$PROJECT_DIR$/../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/cookie_jar-0.0.4/lib" />
       <root url="file://$PROJECT_DIR$/../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/crypto-2.0.3/lib" />
       <root url="file://$PROJECT_DIR$/../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/csslib-0.14.4/lib" />
+      <root url="file://$PROJECT_DIR$/../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/csv-3.1.2/lib" />
       <root url="file://$PROJECT_DIR$/../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/cupertino_icons-0.1.2/lib" />
+      <root url="file://$PROJECT_DIR$/../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/dio-0.0.14/lib" />
       <root url="file://$PROJECT_DIR$/../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/front_end-0.1.0-alpha.12/lib" />
       <root url="file://$PROJECT_DIR$/../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/glob-1.1.5/lib" />
       <root url="file://$PROJECT_DIR$/../../Programs and Games/flutter/.pub-cache/hosted/pub.dartlang.org/html-0.13.3/lib" />
