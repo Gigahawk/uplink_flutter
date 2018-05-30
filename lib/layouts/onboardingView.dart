@@ -9,9 +9,9 @@ import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:archive/archive.dart';
-import 'package:csv/csv.dart';
 
-//import 'package:uplink_flutter/transformers.dart';
+import 'package:uplink_flutter/transformers.dart';
+import 'package:uplink_flutter/database.dart';
 
 class OnboardingView extends StatefulWidget {
   @override
@@ -352,55 +352,20 @@ class _OnboardingDownloadState extends State<OnboardingDownloadPage> {
       _fileContents = "";
       String filename = file.name;
       fileList = "${filename}\n${fileList}";
-//      var newFile = new File('${tempDir.path}/$filename');
-//      var sink = newFile.openWrite();
-//      Stream<int> stream = new Stream.fromIterable(file.content);
-//      stream.listen((data) {
-//        debugPrint("Writing ${data.toString()} to ${file.name}");
-//        sink.write(data);
-//        debugPrint("Done");
-//      },
-//          onDone: () async {
-//            await sink.flush();
-//            await sink.close();
-//            debugPrint("Done ${file.name}");
-//          });
+
+      if(file.name != "feed_info.txt")
+        continue;
 
       new File('${tempDir.path}/$filename')
             ..createSync(recursive: true)
             ..writeAsBytesSync(file.content);
       var input = new File('${tempDir.path}/$filename').openRead();
-//      final csvCodec = new naiveCSVTransformer();
-      void handleData(String input, EventSink<Iterable<String>> sink) {
-//        print("Hnadling data");
-        List<String> data = input.split("\n");
-//        print("Made a list of lines");
-        for (String line in data) {
-//          print("Made a list of cells");
-          List<String> cells = line.split(",");
-//          List<String> cells = line.split(",").map((String cell) => cell.trim());
-//          print("Adding cells");
-          sink.add(cells);
-//          sink.add(line);
-        }
-      }
-      StreamTransformer transformer = new StreamTransformer<String,Iterable<String>>.fromHandlers(
-        handleData: handleData,
-      );
-      final fields = await input.transform(utf8.decoder).transform(transformer).toList();
-
-      for(var field in fields){
-//        debugPrint(fields.runtimeType.toString());
-        String row = "";
-        for(var cell in field){
-          row = "$row;$cell";
-        }
-        debugPrint(row);
-      }
-
-
-
-
+      final csvCodec = new NaiveCSVTransformer();
+//      StreamTransformer transformer = new StreamTransformer<String,Iterable<String>>.fromHandlers(
+//        handleData: handleData,
+//      );
+      Stream<Map> fields = input.transform(utf8.decoder).transform(csvCodec.decoder);
+      var databasething = new TranslinkDataProcessor(feed_info: fields);
 
       break;
     }
