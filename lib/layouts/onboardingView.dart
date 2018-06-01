@@ -12,6 +12,7 @@ import 'package:archive/archive.dart';
 
 import 'package:uplink_flutter/transformers.dart';
 import 'package:uplink_flutter/database.dart';
+import 'package:uplink_flutter/csvRebuilder.dart';
 
 class OnboardingView extends StatefulWidget {
   @override
@@ -275,77 +276,19 @@ class _OnboardingDownloadState extends State<OnboardingDownloadPage> {
     debugPrint("Extracted");
     String fileList = "";
 
-    List<List<dynamic>> routesList, tripsList, stop_timesList;
+    Stream<Map> feed_info, routes, trips, stop_times, stops;
 
-
-//    for (ArchiveFile file in archive) {
-//      switch (file.name) {
-//
-//        case "routes.txt":
-//          {
-//            onboardDownloadKey.currentState.showSnackBar(SnackBar(
-//              content: Text("Processing routes"),
-//            ));
-//            setState(() {
-//              _message = "Processing routes";
-////              _fileContents = file.content.toString();
-//            });
-//            await Future.delayed(Duration(seconds: 4));
-//          }
-////          routesList = const CsvToListConverter().convert(file.content.toString());
-//          break;
-//        case "trips.txt":
-//          {
-//            onboardDownloadKey.currentState.showSnackBar(SnackBar(
-//              content: Text("Processing trips"),
-//            ));
-//            setState(() {
-//              _message = "Processing trips";
-////              _fileContents = file.content.toString();
-//            });
-////          tripsList = const CsvToListConverter().convert(file.content.toString());
-//
-//            await Future.delayed(Duration(seconds: 4));
-//          }
-//          break;
-//        case "stop_times.txt":
-//          {
-//            onboardDownloadKey.currentState.showSnackBar(SnackBar(
-//              content: Text("Processing stop_times"),
-//            ));
-//            setState(() {
-//              _message = "Processing stop_times";
-////              _fileContents = file.content.toString();
-//            });
-//            //stop_timesList = const CsvToListConverter().convert(file.content.toString());
-//            await Future.delayed(Duration(seconds: 4));
-//          }
-//          break;
-//        default:
-//          continue;
-//      }
-//      fileList = "${file.name}\n${fileList}";
-//    }
-
-//    for (ArchiveFile file in archive) {
-//      debugPrint("Handling ${file.name}");
-//      _fileContents = "";
-//      String filename = file.name;
-//      fileList = "${filename}\n${fileList}";
-//      List<int> data = file.content;
-//      var newFile = new File('${tempDir.path}/$filename');
-//      var sink = newFile.openWrite();
-//      Stream<int> stream = dataStream(data);
-//      stream.listen((data) {
-//        debugPrint("Writing ${data.toString()} to ${file.name}");
-//        sink.write(data);
-//        debugPrint("Done");
-//      },
-//      onDone: () async {
-//        await sink.flush();
-//        await sink.close();
-//        debugPrint("Done ${file.name}");
-//      });
+    Stream<Map> csvToStream(ArchiveFile file) {
+//    List<String> csvToStream(ArchiveFile file) {
+      String filePath = '${tempDir.path}/${file.name}';
+      final csvCodec = new NaiveCSVTransformer();
+      new File(filePath)
+          ..createSync(recursive: true)
+          ..writeAsBytesSync(file.content);
+      var input = new File(filePath).openRead();
+      return input.transform(utf8.decoder).transform(new LineSplitter()).transform(csvCodec.decoder);
+//      return input.transform(utf8.decoder);
+    }
 
     for (ArchiveFile file in archive) {
       debugPrint("Handling ${file.name}");
@@ -353,21 +296,35 @@ class _OnboardingDownloadState extends State<OnboardingDownloadPage> {
       String filename = file.name;
       fileList = "${filename}\n${fileList}";
 
-      if(file.name != "feed_info.txt")
-        continue;
+      switch(file.name) {
+        case "feed_info.txt": {
+          feed_info = csvToStream(file);
+        }
+        break;
 
-      new File('${tempDir.path}/$filename')
-            ..createSync(recursive: true)
-            ..writeAsBytesSync(file.content);
-      var input = new File('${tempDir.path}/$filename').openRead();
-      final csvCodec = new NaiveCSVTransformer();
-//      StreamTransformer transformer = new StreamTransformer<String,Iterable<String>>.fromHandlers(
-//        handleData: handleData,
-//      );
-      Stream<Map> fields = input.transform(utf8.decoder).transform(csvCodec.decoder);
-      var databasething = new TranslinkDataProcessor(feed_info: fields);
+        case "routes.txt": {
+          routes = csvToStream(file);
+        }
+        break;
 
-      break;
+        case "trips.txt": {
+          trips = csvToStream(file);
+        }
+        break;
+
+        case "stop_times.txt": {
+          stop_times = csvToStream(file);
+        }
+        break;
+
+        case "stops.txt": {
+          stops = csvToStream(file);
+        }
+        break;
+
+        default:
+          continue;
+      }
     }
     onboardDownloadKey.currentState.showSnackBar(SnackBar(
       content: Text("Extract complete"),
@@ -375,6 +332,21 @@ class _OnboardingDownloadState extends State<OnboardingDownloadPage> {
     setState(() {
       _message = "Extracted, processing\n$fileList";
     });
+
+    var thing = TranslinkDataProcessor(
+      feed_info: feed_info,
+      routes: routes,
+      trips: trips,
+      stop_times: stop_times,
+      stops: stops
+    );
+//    List things = [
+//      CsvRebuilder(feed_info, '${tempDir.path}/feed_info_rebuild.csv'),
+//      CsvRebuilder(routes, '${tempDir.path}/routes_rebuild.csv'),
+//      CsvRebuilder(trips, '${tempDir.path}/trips_rebuild.csv'),
+//      CsvRebuilder(stop_times, '${tempDir.path}/stop_times_rebuild.csv'),
+//      CsvRebuilder(stops, '${tempDir.path}/stops_rebuild.csv'),
+//    ];
     return true;
   }
 
