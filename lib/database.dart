@@ -13,7 +13,7 @@ class TranslinkDataProcessor {
   final bool databaseReady;
   Database db,infoDb;
 
-  Directory documentsDirectory;
+  Directory documentsDirectory, tempDirectory;
   String infoPath, dbPath;
 
   // Incoming streams from csv data, named according to GTFS spec:
@@ -40,6 +40,7 @@ class TranslinkDataProcessor {
 
   _setupDatabase() async {
     documentsDirectory = await getApplicationDocumentsDirectory();
+    tempDirectory = await getTemporaryDirectory();
     infoPath = join(documentsDirectory.path, infoDbName);
     dbPath = join(documentsDirectory.path, dbName);
     await _initVersionNumber();
@@ -64,12 +65,7 @@ class TranslinkDataProcessor {
     } else {
       String cols = values.map((String value) => "\"$value\"").toList().join(",");
       String sql = "INSERT INTO $tableName VALUES($cols);";
-//      debugPrint(sql);
-      // Inserts can happen async, order isnt very important
       await db.execute(sql);
-//      bool shouldPrint = map['rowNum'] % 100 ? true : false;
-//      if(shouldPrint)
-//        debugPrint("Committed $tableName row ${map['rowNum']}");
     }
   }
 
@@ -119,12 +115,7 @@ class TranslinkDataProcessor {
       debugPrint(sql);
       await db.execute(sql);
     } else {
-//      String cols = values.map((String value) => "\"$value\"").toList().join(",");
-//      String sql = "INSERT INTO $tableName VALUES($cols);";
-//      debugPrint(sql);
-      // Inserts can happen async, order isnt very important
       builder.addEntry(values);
-//      await batch.commit(noResult: true);
       if(rowNum % 10000 == 0) {
         debugPrint("Committing $tableName row ${map['rowNum']}");
         await db.execute(builder.getQuery());
@@ -144,7 +135,10 @@ class TranslinkDataProcessor {
           debugPrint("Creating");
           this.feed_info.listen((Map row) async {
             await _mapToDb(row, db, "feed_info");
-            });
+            },
+          onDone: () {
+            File("${tempDirectory.path}/feed_info.txt").delete();
+          });
         },
         onOpen: (Database db) async {
           try {
@@ -176,9 +170,7 @@ class TranslinkDataProcessor {
         for(List list in [[this.routes,"routes",routesBuilder],[this.trips, "trips", tripsBuilder], [this.stop_times, "stop_times", stop_timesBuilder], [this.stops ,"stops", stopsBuilder]]){
           debugPrint("Setting up ${list[1]}");
           StreamSubscription sub = list[0].listen((Map row) async {
-//            await _mapToBatch(row, db, batch, list[1]);
             await _mapToBuilder(row, db, list[2], list[1]);
-//            await _mapToDb(row, db, "routes");
           });
 
           Future future = sub.asFuture();
@@ -190,49 +182,15 @@ class TranslinkDataProcessor {
             await db.execute(list[2].getQuery());
             debugPrint("done ${list[1]}");
 
+            File("${tempDirectory.path}/${list[1]}.txt").delete();
+
             if(list[1] == "stop_times") {
               debugPrint("collapsing database");
               await _collapseDatabase(db);
               debugPrint("done");
             }
           });
-
         }
-//        List<StreamSubscription> subscriptions = [
-//          this.routes.listen((Map row) async {
-//            await _mapToBatch(row, db, batch, "routes");
-////            await _mapToDb(row, db, "routes");
-//          }),
-//          this.trips.listen((Map row) async {
-//            await _mapToBatch(row, db, batch, "trips");
-////            await _mapToDb(row, db, "trips");
-//          }),
-//          this.stop_times.listen((Map row) async {
-//            await _mapToBatch(row, db, batch, "stop_times");
-////            await _mapToDb(row, db, "stop_times");
-//          }),
-//          this.stops.listen((Map row) async {
-//            await _mapToBatch(row, db, batch, "stops");
-////            await _mapToDb(row, db, "stops");
-//          })
-//        ];
-//
-//        List<Future> futures = subscriptions.map((StreamSubscription sub) => sub.asFuture()).toList();
-//
-//        debugPrint("Waiting for streams to close");
-//
-//        Future.wait(futures).then((List e) async {
-//          debugPrint("Streamse closed, commiting to db");
-//          await batch.commit(noResult: true);
-//          debugPrint("Committed");
-//          debugPrint(e.toString());
-//          subscriptions.forEach((s) {
-//            s.cancel();
-//          });
-//          subscriptions.clear();
-//          futures.clear();
-//          _collapseDatabase(db);
-//        });
       }
     );
   }
@@ -251,19 +209,20 @@ class TranslinkDataProcessor {
     await db.execute(sql);
     debugPrint("Done");
 
-    debugPrint("Deleting extra tables");
-//    const String sqlDelete = """
-//    DROP TABLE routes;
-//    DROP TABLE trips;
-//    DROP TABLE stop_times;
-//    """;
-//    debugPrint(sqlDelete);
-//    await db.execute(sqlDelete);
+    debugPrint("Deleting routes");
     await db.delete("routes");
+    debugPrint("Deleting trips");
     await db.delete("trips");
+    debugPrint("Deleting stop_times");
     await db.delete("stop_times");
+    const String sqlDelete = """
+    DROP TABLE routes;
+    DROP TABLE trips;
+    DROP TABLE stop_times;
+    """;
+    debugPrint(sqlDelete);
+    await db.execute(sqlDelete);
     debugPrint("Done");
-
   }
 }
 
@@ -291,8 +250,6 @@ class dbInsertBuilder {
   String getQuery() {
     if(hasValues) {
       String raw = _query.toString();
-//      debugPrint("Releasing query:");
-//      debugPrint(raw);
       _reset();
       return "${raw.substring(0, raw.length - 1)};";
     }

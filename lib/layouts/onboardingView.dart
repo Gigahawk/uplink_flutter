@@ -256,7 +256,7 @@ class _OnboardingDownloadState extends State<OnboardingDownloadPage> {
   }
 
   Future<bool> _fetchData() async {
-    final tempDir = await getApplicationDocumentsDirectory();
+    final tempDir = await getTemporaryDirectory();
     debugPrint(tempDir.path);
     final tempPath = '${tempDir.path}/google_transit.zip';
 
@@ -268,7 +268,9 @@ class _OnboardingDownloadState extends State<OnboardingDownloadPage> {
       _message = "File Downloaded, extracting...";
     });
 
-    List<int> bytes = new File(tempPath).readAsBytesSync();
+    File zipFile = new File(tempPath);
+    List<int> bytes = zipFile.readAsBytesSync();
+    zipFile.delete();
 
     debugPrint("extracting files");
     Archive archive = new ZipDecoder().decodeBytes(bytes);
@@ -279,7 +281,6 @@ class _OnboardingDownloadState extends State<OnboardingDownloadPage> {
     Stream<Map> feed_info, routes, trips, stop_times, stops;
 
     Stream<Map> csvToStream(ArchiveFile file) {
-//    List<String> csvToStream(ArchiveFile file) {
       String filePath = '${tempDir.path}/${file.name}';
       final csvCodec = new NaiveCSVTransformer();
       new File(filePath)
@@ -287,7 +288,6 @@ class _OnboardingDownloadState extends State<OnboardingDownloadPage> {
           ..writeAsBytesSync(file.content);
       var input = new File(filePath).openRead();
       return input.transform(utf8.decoder).transform(new LineSplitter()).transform(csvCodec.decoder);
-//      return input.transform(utf8.decoder);
     }
 
     for (ArchiveFile file in archive) {
