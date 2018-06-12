@@ -1,4 +1,5 @@
 import 'package:meta/meta.dart';
+import 'package:flutter/foundation.dart';
 
 class BusStop {
   BusStop({
@@ -14,38 +15,38 @@ class BusStop {
   double lat, lon;
   List<BusRoute> routes;
 
-//  Movie.fromJson(Map json)
-//      : title = json["title"],
-//        posterPath = json["poster_path"],
-//        id = json["id"].toString(),
-//        overview = json["overview"],
-//        favored = false;
-//
-//  Map<String, dynamic> toMap() {
-//    var map = Map<String, dynamic>();
-//    map['id'] = id;
-//    map['title'] = title;
-//    map['poster_path'] = posterPath;
-//    map['overview'] = overview;
-//    map['favored'] = favored;
-//    return map;
-//  }
-//
-//  Movie.fromDb(Map map)
-//      : title = map["title"],
-//        posterPath = map["poster_path"],
-//        id = map["id"].toString(),
-//        overview = map["overview"],
-//        favored = map['favored'] == 1 ? true : false;
+  BusStop.fromMap(Map map) {
+    List<Map> m_routes = map["routes"];
+    id = map["stop_code"];
+    name = map["stop_name"];
+    desc = map["stop_desc"];
+    lat = double.parse(map["stop_lat"]);
+    lon = double.parse(map["stop_lon"]);
+    routes = m_routes.map((Map route) {
+      return BusRoute.fromMap(route);
+    }).toList();
+  }
+
+  printInfo() {
+    debugPrint("id: $id");
+    debugPrint("name: $name");
+    for(BusRoute route in routes) {
+      debugPrint("${route.id}, ${route.name}");
+    }
+  }
 }
 
 class BusRoute {
   BusRoute({
     @required this.id,
-    @required this.short_name,
-    @required this.long_name,
+    @required this.name,
     this.desc,
   });
 
-  String id, short_name, long_name, desc;
+  String id, name, desc;
+
+  BusRoute.fromMap(Map map) {
+    id = map["route_short_name"];
+    name = map["route_long_name"];
+  }
 }

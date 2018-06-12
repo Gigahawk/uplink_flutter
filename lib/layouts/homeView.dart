@@ -1,7 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uplink_flutter/database.dart';
 
 import 'package:uplink_flutter/models/stop.dart';
 import 'package:uplink_flutter/layouts/stopView.dart';
@@ -29,43 +34,41 @@ class HomeView extends StatefulWidget {
 
 class HomeViewState extends State<HomeView> {
   List<BusStop> stops = List();
-  bool hasLoaded = true;
-
-//  final PublishSubject subject = PublishSubject<String>();
+  bool _hasLoaded;
+  TranslinkDbAdapter dbAdapter;
 
   @override
   void dispose() {
-//    subject.close();
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
-//    subject.stream.debounce(Duration(milliseconds: 400)).listen(searchMovies);
+    _hasLoaded = false;
+    getApplicationDocumentsDirectory().then((Directory directory) {
+      dbAdapter = TranslinkDbAdapter(p.join(directory.path,"stops.db"));
+    });
     _getPrefs();
   }
 
+
   void _getPrefs() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String lastCheck = prefs.getString('lastCheck') ?? null;
+    final int dbVersion = prefs.getInt('dbVersion') ?? null;
 
-    if(lastCheck == null){
+    if(dbVersion == null){
       // No data, start onboarding
       Navigator.push(
         context,
-        new MaterialPageRoute(builder: (context) => new OnboardingView()),
+        new MaterialPageRoute(builder: (context) => OnboardingLogoPage()),
       );
-//      Scaffold.of(context).showSnackBar(SnackBar(
-//        content: new Text('no lastCheck'),
-//        duration: Duration(seconds:20),
-//      ));
     }
   }
 
   void onError(dynamic d) {
     setState(() {
-      hasLoaded = true;
+      _hasLoaded = true;
     });
   }
 
@@ -76,18 +79,31 @@ class HomeViewState extends State<HomeView> {
         child: Column(
           children: <Widget>[
             TextField(
-//            onChanged: (String string) => (subject.add(string)),
-              keyboardType: TextInputType.url,
+              keyboardType: TextInputType.numberWithOptions(
+                signed: false,
+                decimal: false,
+              ),
+              onChanged: (String query) async {
+                if(query.length > 2) {
+                  debugPrint("Searching for $query");
+                  List<BusStop> stops = await dbAdapter.findStopById(query);
+                  for(BusStop stop in stops){
+                    stop.printInfo();
+                  }
+                }
+              },
             ),
-            CircularProgressIndicator(),
             Expanded(
-                child: ListView.builder(
+                child: _hasLoaded ? ListView.builder(
                   padding: EdgeInsets.all(10.0),
                   itemCount: stops.length,
                   itemBuilder: (BuildContext context, int index) {
                     return new BusStopListItemView(stops[index]);
                   },
-                ))
+                ) : Center(
+                  child: CircularProgressIndicator(),
+                )
+            ),
           ],
         ),
       );
