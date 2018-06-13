@@ -11,12 +11,14 @@ import 'package:uplink_flutter/database.dart';
 import 'package:uplink_flutter/models/stop.dart';
 import 'package:uplink_flutter/layouts/stopView.dart';
 import 'package:uplink_flutter/layouts/onboardingView.dart';
+import 'package:uplink_flutter/theme.dart';
 
 class MainView extends StatelessWidget {
   @override
   Widget build(BuildContext context){
     return new MaterialApp(
       title: "Uplink",
+      theme: translinkTheme,
       home: new Scaffold(
         appBar: new AppBar(
           title: new Text("Uplink")
@@ -101,7 +103,424 @@ class HomeViewState extends State<HomeView> {
                     return new BusStopListItemView(stops[index]);
                   },
                 ) : Center(
-                  child: CircularProgressIndicator(),
+//                  child: CircularProgressIndicator(),
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: <Widget>[
+                      Card(
+                        elevation: 5.0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                        child: Column(
+                          children: <Widget>[
+                            Container(
+                              height: 60.0,
+                              width: double.infinity,
+                              color: const Color(0xFF00355D),
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                  top: 25.0,
+                                  left: 20.0,
+                                  right: 20.0,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: <Widget>[
+                                    Text("12345",
+                                      textAlign: TextAlign.end,
+                                      style: TextStyle(
+                                        color: const Color(0xFFFFD51F),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20.0
+                                      ),
+                                    ),
+                                    Container(
+                                      color: const Color(0xFFFFD51F),
+                                      width: double.infinity,
+                                      height: 1.5,
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                ExpansionTile(
+                                  onExpansionChanged: (changed) {
+                                    debugPrint(changed.toString());
+                                  },
+                                  children: <Widget>[
+
+                                    new Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: 16.0,
+                                          right: 56.0
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 20.0,
+                                          right: 40.0,
+                                        ),
+                                        child: LinearProgressIndicator(
+                                          backgroundColor: Color(0xFF0081C5), //ThemeData.backgroundColor
+                                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00355D)), //ThemeData.accentColor
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                  title: GestureDetector(
+                                    onLongPress: () {
+                                      debugPrint("longpressed");
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                          top: 8.0,
+                                          left: 20.0,
+                                          right: 40.0
+                                      ),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          Container(
+                                            width: 50.0,
+                                            child: Text("100",
+//                                      textAlign: TextAlign.start,
+                                              style: TextStyle(
+                                                  color: const Color(0xFF00355D),
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20.0
+                                              ),
+                                            ),
+                                          ),
+                                          Flexible(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: <Widget>[
+                                                Text("22ND ST STN/MARPOLE LOOP",
+//                                      textAlign: TextAlign.start,
+                                                  style: TextStyle(
+                                                      color: const Color(0xFF00355D),
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 20.0
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 16.0 + 20.0,
+                                    right: 56.0 + 40.0,
+                                  ),
+                                  child: Container(
+                                    color: const Color(0xFF00355D),
+                                    width: double.infinity,
+                                    height: 1.5,
+                                  ),
+                                )
+                              ],
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                ExpansionTile(
+                                  children: <Widget>[
+                                    new Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: 16.0,
+                                          right: 56.0
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 20.0,
+                                          right: 40.0,
+                                        ),
+                                        child: Row(
+                                          children: <Widget>[
+                                            Container(
+                                              width: 50.0,
+                                            ),
+                                            Text("4:00 AM, 4:30 AM",
+                                              textAlign: TextAlign.start,
+                                              style: TextStyle(
+                                                  color: const Color(0xFF00355D),
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 15.0
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                  title: Padding(
+                                    padding: const EdgeInsets.only(
+                                        top: 8.0,
+                                        left: 20.0,
+                                        right: 40.0
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        Container(
+                                          width: 50.0,
+                                          child: Text("100",
+//                                      textAlign: TextAlign.start,
+                                            style: TextStyle(
+                                                color: const Color(0xFF00355D),
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 20.0
+                                            ),
+                                          ),
+                                        ),
+                                        Flexible(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: <Widget>[
+                                              Text("22ND ST STN/MARPOLE LOOP",
+//                                      textAlign: TextAlign.start,
+                                                style: TextStyle(
+                                                    color: const Color(0xFF00355D),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20.0
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 16.0 + 20.0,
+                                    right: 56.0 + 40.0,
+                                  ),
+                                  child: Container(
+                                    color: const Color(0xFF00355D),
+                                    width: double.infinity,
+                                    height: 1.5,
+                                  ),
+                                )
+                              ],
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                ExpansionTile(
+                                  children: <Widget>[
+                                    new Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 16.0,
+                                        right: 56.0
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 20.0,
+                                          right: 40.0,
+                                        ),
+                                        child: Row(
+                                          children: <Widget>[
+                                            Container(
+                                              width: 50.0,
+                                            ),
+                                            Text("4:00 AM, 4:30 AM",
+                                              textAlign: TextAlign.start,
+                                              style: TextStyle(
+                                                  color: const Color(0xFF00355D),
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 15.0
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                  title: Padding(
+                                    padding: const EdgeInsets.only(
+                                        top: 8.0,
+                                        left: 20.0,
+                                        right: 40.0
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        Container(
+                                          width: 50.0,
+                                          child: Text("100",
+//                                      textAlign: TextAlign.start,
+                                            style: TextStyle(
+                                                color: const Color(0xFF00355D),
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 20.0
+                                            ),
+                                          ),
+                                        ),
+                                        Flexible(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: <Widget>[
+                                              Text("22ND ST STN/MARPOLE LOOP",
+//                                      textAlign: TextAlign.start,
+                                                style: TextStyle(
+                                                    color: const Color(0xFF00355D),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20.0
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 16.0 + 20.0,
+                                    right: 56.0 + 40.0,
+                                  ),
+                                  child: Container(
+                                    color: const Color(0xFF00355D),
+                                    width: double.infinity,
+                                    height: 1.5,
+                                  ),
+                                )
+                              ],
+                            ),
+                            Container(
+                              margin: EdgeInsets.only(
+                                top: 8.0
+                              ),
+                              height: 50.0,
+                              width: double.infinity,
+                              color: const Color(0xFF87746A),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  new Padding(
+                                    padding: const EdgeInsets.only(left: 20.0),
+                                    child: Text("Distance: 3m",
+                                      textAlign: TextAlign.start,
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20.0
+                                      ),
+                                    ),
+                                  ),
+
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                      Card(
+                        elevation: 5.0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                        child: Column(
+                          children: <Widget>[
+                            Container(
+                              height: 60.0,
+                              width: double.infinity,
+                              color: const Color(0xFF00355D),
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                  top: 25.0,
+                                  left: 20.0,
+                                  right: 20.0,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: <Widget>[
+                                    Text("12345",
+                                      textAlign: TextAlign.end,
+                                      style: TextStyle(
+                                          color: const Color(0xFFFFD51F),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20.0
+                                      ),
+                                    ),
+                                    Container(
+                                      color: const Color(0xFFFFD51F),
+                                      width: double.infinity,
+                                      height: 1.5,
+                                    )
+                                  ],
+
+                                ),
+                              ),
+                            ),
+                            Container(
+                              height: 200.0,
+                              width: double.infinity,
+                              color: Colors.green,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Card(
+                        elevation: 5.0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                        child: Column(
+                          children: <Widget>[
+                            Container(
+                              height: 60.0,
+                              width: double.infinity,
+                              color: const Color(0xFF00355D),
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                  top: 25.0,
+                                  left: 20.0,
+                                  right: 20.0,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: <Widget>[
+                                    Text("12345",
+                                      textAlign: TextAlign.end,
+                                      style: TextStyle(
+                                          color: const Color(0xFFFFD51F),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20.0
+                                      ),
+                                    ),
+                                    Container(
+                                      color: const Color(0xFFFFD51F),
+                                      width: double.infinity,
+                                      height: 1.5,
+                                    )
+                                  ],
+
+                                ),
+                              ),
+                            ),
+                            Container(
+                              height: 200.0,
+                              width: double.infinity,
+                              color: Colors.green,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
+
                 )
             ),
           ],
