@@ -1,66 +1,263 @@
 import 'package:flutter/material.dart';
+import 'package:geolocation/geolocation.dart';
+import 'package:uplink_flutter/location.dart';
 import 'package:uplink_flutter/models/stop.dart';
+import 'package:sms/sms.dart';
 
-class BusStopListItemView extends StatefulWidget {
-  BusStopListItemView(this.stop);
+class StopView extends StatefulWidget {
   final BusStop stop;
 
+  StopView(this.stop);
+
   @override
-  BusStopListItemViewState createState() => BusStopListItemViewState();
+  _StopState createState() => new _StopState();
 }
 
-class BusStopListItemViewState extends State<BusStopListItemView> {
-  BusStop stop;
+class _StopState extends State<StopView> {
 
-  @override
-  void initState() {
-    super.initState();
-    stop = widget.stop;
+  String _distance = "3m";
+  LocationResult _currLocation;
+
+  static const double _elevation = 5.0;
+  static ShapeBorder _cardShape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(20.0),
+  );
+  static const double _headerHeight = 60.0;
+  static const double _headerLineHeight = 1.5;
+  static const EdgeInsets _headerPadding = EdgeInsets.only(
+    top: 25.0,
+    left: 20.0,
+    right: 20.0,
+  );
+  static const Color _headerColor = Color(0xFFFFD51F);
+  static const TextStyle _headerStyle = TextStyle(
+    color: _headerColor,
+    fontWeight: FontWeight.bold,
+    fontSize: 20.0
+  );
+
+  static const double _footerHeight = 50.0;
+  static const EdgeInsets _footerPadding = EdgeInsets.only(
+    left: 20.0 + 16.0
+  );
+  static const TextStyle _footerStyle = TextStyle(
+      color: Colors.white,
+      fontWeight: FontWeight.bold,
+      fontSize: 20.0
+  );
+
+  Widget _buildRoutes(BuildContext context){
+    return Column(
+      children: widget.stop.routes.map((BusRoute route) => RouteView(route)).toList(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return ExpansionTile(
-        initiallyExpanded: false,
-//        onExpansionChanged: (b) => movieState.isExpanded = b,
-//        children: <Widget>[
-//          Container(
-//            padding: EdgeInsets.all(10.0),
-//            child: RichText(
-//              text: TextSpan(
-//                text: movieState.overview,
-//                style: TextStyle(
-//                  fontSize: 14.0,
-//                  fontWeight: FontWeight.w300,
-//                ),
-//              ),
-//            ),
-//          )
-//        ],
-//        leading: IconButton(
-//          icon: movieState.favored ? Icon(Icons.star) : Icon(Icons.star_border),
-//          color: Colors.white,
-//          onPressed: () {
-//            setState(() => movieState.favored = !movieState.favored);
-//            movieState.favored == true
-//                ? db.addMovie(movieState)
-//                : db.deleteMovie(movieState.id);
-//          },
-//        ),
-        title: Container(
-            padding: EdgeInsets.all(10.0),
-            child: Row(
-              children: <Widget>[
-                Text(stop.id),
-                Expanded(
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: <Widget>[
+    final container = LocationContainer.of(context);
+    _currLocation = container.location;
+    return Card(
+      elevation: _elevation,
+      margin: EdgeInsets.all(10.0),
+      shape: _cardShape,
+      child: Column(
+        children: <Widget>[
+          Container(
+            height: _headerHeight,
+            width: double.infinity,
+            color: Theme.of(context).primaryColor,
+            child: Padding(
+              padding: _headerPadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: <Widget>[
+                  Text(widget.stop.id,
+                    textAlign: TextAlign.end,
+                    style: _headerStyle,
+                  ),
+                  Container(
+                    color: _headerColor,
+                    width: double.infinity,
+                    height: _headerLineHeight,
+                  )
+                ],
+              ),
+            ),
+          ),
 
-                      ],
-                    )
+          _buildRoutes(context),
+
+          Container(
+            margin: EdgeInsets.only(
+              top: 8.0
+            ),
+            color: Colors.grey,
+            height: _footerHeight,
+            width: double.infinity,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: _footerPadding,
+                  child: Text("Distance: ${_currLocation != null ? "${widget.stop.currDistance(_currLocation.location).toInt().toString()}m" : "Unknown"}",
+                    textAlign: TextAlign.start,
+                    style: _footerStyle,
+                  ),
                 )
               ],
-            )));
+            ),
+          )
+        ],
+      ),
+
+    );
   }
+
 }
+
+class RouteView extends StatefulWidget {
+  final BusRoute route;
+
+  RouteView(this.route);
+
+  @override
+  _RouteState createState() => new _RouteState();
+}
+
+class _RouteState extends State<RouteView> {
+  bool _hasData = false;
+  String _data;
+
+  static const EdgeInsets _expansionTileChildPadding = const EdgeInsets.only(
+    left: 16.0,
+    right: 56.0,
+  );
+
+  static const EdgeInsets _routePadding = const EdgeInsets.only(
+    left: 20.0,
+    right: 40.0,
+  );
+
+  static const String _theBus = "33333";
+  static const double _routeShortNameWidth = 50.0;
+  static const double _routeDataSize = 15.0;
+  static const double _routeRowHeight = 1.5;
+  static const TextStyle _routeTextStyle = TextStyle(
+      color: const Color(0xFF00355D),
+      fontWeight: FontWeight.bold,
+      fontSize: 20.0,
+  );
+
+  _getData() async {
+    String query = "${widget.route.stop_id} ${widget.route.id}";
+    setState(() {
+      _hasData = false;
+    });
+    debugPrint("listening");
+    SmsReceiver reciever = new SmsReceiver();
+    reciever.onSmsReceived.listen((SmsMessage msg) {
+      if(msg.sender == _theBus){
+        String message = msg.body;
+
+        List<String> words = message.split(" ");
+        debugPrint(words.toString());
+
+        String stop_id = words[0];
+        String route_id = words[1].replaceAll(RegExp(r"[\[\]]"), "");
+
+        if(stop_id == widget.route.stop_id && route_id == widget.route.id){
+          debugPrint("Setting time to ${words[2]}, ${words[3]} for route $route_id");
+          setState(() {
+            _data = "${words[2]}, ${words[3]}";
+            _hasData = true;
+          });
+
+        }
+      }
+    });
+
+    debugPrint("Sending");
+    SmsSender sender = new SmsSender();
+    sender.sendSms(SmsMessage(_theBus, query));
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        ExpansionTile(
+          onExpansionChanged: (bool open) {
+            if(open && !_hasData){
+              _getData();
+            }
+          },
+          title: GestureDetector(
+            onLongPress: () => _getData(),
+            child: Padding(
+              padding: _routePadding.add(EdgeInsets.only(top: 8.0)),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Container(
+                    width: _routeShortNameWidth,
+                    child: Text(widget.route.id,
+                      style: _routeTextStyle,
+                    ),
+                  ),
+                  // Needed to make text wrapping work properly,
+                  // see https://github.com/flutter/flutter/issues/4128
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(widget.route.name,
+                          style: _routeTextStyle,
+                        )
+                      ],
+                    ),
+                  )
+                ],
+              )
+            ),
+          ),
+          children: <Widget>[
+            Padding(
+              padding: _expansionTileChildPadding,
+              child: Padding(
+                padding: _routePadding,
+                child: _hasData ? Row(
+                  children: <Widget>[
+                    Container(width: _routeShortNameWidth),
+                    Text(_data,
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: _routeDataSize,
+                      ),
+                    ),
+                  ],
+                ) : LinearProgressIndicator(),
+              ),
+
+            )
+          ],
+        ),
+        Padding(
+          padding: _expansionTileChildPadding.add(_routePadding),
+          child: Container(
+            color: Theme.of(context).primaryColor,
+            width: double.infinity,
+            height: _routeRowHeight,
+          ),
+        )
+      ],
+    );
+  }
+
+}
+
+
+

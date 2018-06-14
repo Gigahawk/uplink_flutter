@@ -1,10 +1,12 @@
 import 'dart:core';
 import 'dart:async';
 import 'dart:io';
+import 'package:geolocation/geolocation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
+import 'package:uplink_flutter/location.dart';
 import 'package:uplink_flutter/models/stop.dart';
 
 class TranslinkDataProcessor {
@@ -248,26 +250,26 @@ class TranslinkDataProcessor {
   // Create new table stop_routes linking stops to routes
   _collapseDatabase(Database db) async {
     statusController.add("Cleaning up...");
-    progressController.add(0.0);
+    progressController.add(-1.0);
     debugPrint("Creating stop_routes");
     const String sql = """
     CREATE TABLE stop_routes AS
-    SELECT DISTINCT routes.route_short_name, routes.route_long_name, stops.stop_code, stops.stop_name FROM routes
+    SELECT DISTINCT routes.route_short_name, routes.route_long_name, stops.stop_code, stops.stop_name, trips.trip_headsign FROM routes
     JOIN trips ON routes.route_id = trips.route_id
     JOIN stop_times ON trips.trip_id = stop_times.trip_id
     JOIN stops ON stop_times.stop_id = stops.stop_id;
     """;
     debugPrint(sql);
     await db.execute(sql);
-    progressController.add(0.5);
+    progressController.add(0.0);
     debugPrint("Done");
 
     debugPrint("Deleting routes");
     await db.delete("routes");
-    progressController.add(0.6);
+    progressController.add(0.2);
     debugPrint("Deleting trips");
     await db.delete("trips");
-    progressController.add(0.7);
+    progressController.add(0.4);
     debugPrint("Deleting stop_times");
     await db.delete("stop_times");
     progressController.add(0.8);
@@ -324,7 +326,10 @@ class TranslinkDbAdapter {
     _db = await openReadOnlyDatabase(path);
   }
 
-  Future<List<BusStop>> findStopById(String id) async {
+  Future<List<BusStop>> findStopsById(String id) async {
+    if(_db == null){
+      return null;
+    }
     List<BusStop> busStops = [];
     List<Map> stops = await _db.query("stops",
       columns: ["stop_lat", "stop_lon", "stop_code", "stop_name"],
@@ -336,13 +341,50 @@ class TranslinkDbAdapter {
     for(Map stop in stops) {
       Map busStop = Map.from(stop);
       List<Map> routes = await _db.query("stop_routes",
-          columns: ["route_short_name", "route_long_name"],
+          columns: ["route_short_name", "route_long_name", "trip_headsign"],
           where: "stop_code = ?",
           whereArgs: [stop["stop_code"]]
       );
       debugPrint("Got ${routes.length.toString()} routes");
       busStop["routes"] = routes;
       busStops.add(BusStop.fromMap(busStop));
+    }
+
+    return busStops;
+  }
+
+  Future<List<BusStop>> findStopsByLocation(location) async {
+    if(_db == null){
+      return null;
+    }
+    MyLocation myLocation;
+    if(location is Location)
+      myLocation = MyLocation.fromLocation(location);
+    else if(location is MyLocation)
+      myLocation = location;
+    else
+      return null;
+    double lat = myLocation.lat;
+    double lon = myLocation.lon;
+
+    List<BusStop> busStops = [];
+    List<Map> stops = await _db.query("stops",
+      columns: ["stop_lat", "stop_lon", "stop_code", "stop_name"],
+      orderBy: "ABS(($lat - stop_lat)*($lat - stop_lat) + ($lon - stop_lon)*($lon - stop_lon))",
+      limit: 5,
+    );
+//    debugPrint("Got ${stops.length.toString()} stops");
+
+    for(Map stop in stops) {
+      Map busStop = Map.from(stop);
+      List<Map> routes = await _db.query("stop_routes",
+          columns: ["route_short_name", "route_long_name", "trip_headsign"],
+          where: "stop_code = ?",
+          whereArgs: [stop["stop_code"]]
+      );
+//      debugPrint("Got ${routes.length.toString()} routes");
+      busStop["routes"] = routes;
+      busStops.add(BusStop.fromMap(busStop, fromGPS: true));
     }
 
     return busStops;

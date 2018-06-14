@@ -163,9 +163,18 @@ class _OnboardingSetupState extends State<OnboardingSetupPage> {
               child: Text("Request Permission"),
               onPressed: _sms_granted ? null : () async {
                 debugPrint("sms: requesting");
-                PermissionResult result = await AndroidPermissionsManager.requestPermission(PermissionType.SEND_SMS);
+                List<PermissionResult> res = await AndroidPermissionsManager.requestPermissions(<PermissionType>[
+                  PermissionType.SEND_SMS,
+                  PermissionType.READ_SMS,
+                ]);
 
-                if(result == PermissionResult.granted) {
+                List<PermissionResult> results = await AndroidPermissionsManager.checkPermissions(<PermissionType>[
+                  PermissionType.SEND_SMS,
+                  PermissionType.READ_SMS,
+                ]);
+                debugPrint(results.toString());
+
+                if(results[0] == PermissionResult.granted) {
                   debugPrint("sms granted");
                   setState(() {
                     _should_continue = true;
