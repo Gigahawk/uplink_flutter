@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:geolocation/geolocation.dart';
 import 'package:meta/meta.dart';
 import 'package:flutter/foundation.dart';
+import 'package:sms/sms.dart';
 import 'package:uplink_flutter/location.dart';
 
 class BusStop {
@@ -92,12 +95,59 @@ class BusRoute {
     @required this.id,
     @required this.name,
     this.desc,
+    this.isExpanded,
+    this.nextBus,
   }){
     // Remove leading zeros
     id = id.replaceAll(RegExp(r"^[0]*"), "");
+    _statusController = new StreamController<void>();
+    status = _statusController.stream.asBroadcastStream();
+    _sender = new SmsSender();
+    _reciever = new SmsReceiver();
+    _reciever.onSmsReceived.listen((SmsMessage msg) {
+      if(msg.sender == _theBus)
+        _parseMessage(msg.body);
+    });
   }
 
+  void getData() async {
+    String query = "$stop_id $id";
+    nextBus = null;
+    _statusController.add(null);
+    _sender.sendSms(SmsMessage(_theBus,query));
+  }
+
+  void _parseMessage(String message) {
+    List<String> words = message.split(" ");
+    debugPrint(words.toString());
+
+    try{
+      String _stop_id = words[0];
+      String _route_id = words[1].replaceAll(RegExp(r"[\[\]]"), "");
+
+      if(stop_id == _stop_id && id == _route_id){
+        debugPrint("Setting time to ${words[2]}, ${words[3]} for route $_route_id");
+        nextBus = "${words[2]}, ${words[3]}";
+        isExpanded = true;
+        _statusController.add(null);
+      }
+    } catch(e) {
+      nextBus = null;
+      _statusController.add(null);
+    }
+  }
+
+  static const String _theBus = "33333";
+
   String stop_id, id, name, desc;
+  bool isExpanded;
+  String nextBus;
+  Stream<void> status;
+  StreamController<void> _statusController;
+
+
+  SmsSender _sender;
+  SmsReceiver _reciever;
 
   BusRoute.fromMap(Map map, String _stop_id) {
     stop_id = _stop_id;

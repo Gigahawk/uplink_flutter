@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocation/geolocation.dart';
 import 'package:uplink_flutter/location.dart';
 import 'package:uplink_flutter/models/stop.dart';
-import 'package:sms/sms.dart';
+import 'package:vibrate/vibrate.dart';
 
 class StopView extends StatefulWidget {
   final BusStop stop;
@@ -126,8 +129,17 @@ class RouteView extends StatefulWidget {
 }
 
 class _RouteState extends State<RouteView> {
-  bool _hasData = false;
-  String _data;
+  @override
+  void initState(){
+    super.initState();
+    _statusSub = widget.route.status.listen((_) => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _statusSub.cancel();
+  }
 
   static const EdgeInsets _expansionTileChildPadding = const EdgeInsets.only(
     left: 16.0,
@@ -139,6 +151,8 @@ class _RouteState extends State<RouteView> {
     right: 40.0,
   );
 
+  static StreamSubscription _statusSub;
+
   static const String _theBus = "33333";
   static const double _routeShortNameWidth = 50.0;
   static const double _routeDataSize = 15.0;
@@ -149,54 +163,29 @@ class _RouteState extends State<RouteView> {
       fontSize: 20.0,
   );
 
-  _getData() async {
-    String query = "${widget.route.stop_id} ${widget.route.id}";
-    setState(() {
-      _hasData = false;
-    });
-    debugPrint("listening");
-    SmsReceiver reciever = new SmsReceiver();
-    reciever.onSmsReceived.listen((SmsMessage msg) {
-      if(msg.sender == _theBus){
-        String message = msg.body;
-
-        List<String> words = message.split(" ");
-        debugPrint(words.toString());
-
-        String stop_id = words[0];
-        String route_id = words[1].replaceAll(RegExp(r"[\[\]]"), "");
-
-        if(stop_id == widget.route.stop_id && route_id == widget.route.id){
-          debugPrint("Setting time to ${words[2]}, ${words[3]} for route $route_id");
-          setState(() {
-            _data = "${words[2]}, ${words[3]}";
-            _hasData = true;
-          });
-
-        }
-      }
-    });
-
-    debugPrint("Sending");
-    SmsSender sender = new SmsSender();
-    sender.sendSms(SmsMessage(_theBus, query));
-
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        ExpansionTile(
-          onExpansionChanged: (bool open) {
-            if(open && !_hasData){
-              _getData();
-            }
+        GestureDetector(
+          onLongPress: () {
+            HapticFeedback.vibrate();
+            setState(() {
+              widget.route.isExpanded = true;
+            });
+            widget.route.getData();
           },
-          title: GestureDetector(
-            onLongPress: () => _getData(),
-            child: Padding(
+          child: ExpansionTile(
+            initiallyExpanded: widget.route.isExpanded ?? false,
+            onExpansionChanged: (bool open) {
+              widget.route.isExpanded = open;
+              // Only get data if there isn't already data
+              if(open && widget.route.nextBus == null){
+                widget.route.getData();
+              }
+            },
+            title: Padding(
               padding: _routePadding.add(EdgeInsets.only(top: 8.0)),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,28 +211,28 @@ class _RouteState extends State<RouteView> {
                 ],
               )
             ),
-          ),
-          children: <Widget>[
-            Padding(
-              padding: _expansionTileChildPadding,
-              child: Padding(
-                padding: _routePadding,
-                child: _hasData ? Row(
-                  children: <Widget>[
-                    Container(width: _routeShortNameWidth),
-                    Text(_data,
-                      style: TextStyle(
-                        color: Theme.of(context).primaryColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: _routeDataSize,
+            children: <Widget>[
+              Padding(
+                padding: _expansionTileChildPadding,
+                child: Padding(
+                  padding: _routePadding,
+                  child: widget.route.nextBus != null ? Row(
+                    children: <Widget>[
+                      Container(width: _routeShortNameWidth),
+                      Text(widget.route.nextBus,
+                        style: TextStyle(
+                          color: Theme.of(context).primaryColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: _routeDataSize,
+                        ),
                       ),
-                    ),
-                  ],
-                ) : LinearProgressIndicator(),
-              ),
+                    ],
+                  ) : LinearProgressIndicator(),
+                ),
 
-            )
-          ],
+              )
+            ],
+          ),
         ),
         Padding(
           padding: _expansionTileChildPadding.add(_routePadding),

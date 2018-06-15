@@ -78,10 +78,30 @@ class HomeViewState extends State<HomeView> {
 
   void _addStops(List<BusStop> stops, bool fromGPS){
     setState(() {
-      _stops.removeWhere((BusStop stop) => stop.fromGPS == fromGPS);
-      if(stops != null)
-        _stops.addAll(stops);
-      _hasLoaded = _stops.length > 0;
+      // Take only stops we're interested in
+      List<BusStop> combined_stops = _stops.where((BusStop stop) => stop.fromGPS == fromGPS).toList();
+      if(combined_stops.length > 0) {
+        combined_stops.addAll(stops);
+
+        debugPrint("combined_stops is ${combined_stops.length} long");
+        _stops.removeWhere((BusStop stop) => stop.fromGPS == fromGPS);
+
+        for (BusStop stop in stops)
+          combined_stops.remove(
+              combined_stops.lastWhere((BusStop _stop) => stop.id == _stop.id));
+
+        debugPrint("combined_stops is now ${combined_stops.length} long");
+
+
+        if (combined_stops != null)
+          _stops.addAll(combined_stops);
+        _hasLoaded = _stops.length > 0;
+      } else {
+        if (stops != null)
+          _stops.addAll(stops);
+        _hasLoaded = _stops.length > 0;
+
+      }
     });
   }
 
