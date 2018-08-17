@@ -49,15 +49,21 @@ class LocationContainerState extends State<LocationContainer> {
   @override
   void initState() {
     super.initState();
+    _waitForPermission();
+  }
+
+  void _waitForPermission() async {
+    GeolocationResult result = await Geolocation.isLocationOperational();
+    while(!result.isSuccessful)
+      result = await Geolocation.isLocationOperational();
+
     subscription = Geolocation.locationUpdates(
       accuracy: LocationAccuracy.best,
       displacementFilter: 0.0,
       inBackground: false,
     ).listen((LocationResult result) {
-
       _updateLocation(result);
     });
-
   }
 
   @override
