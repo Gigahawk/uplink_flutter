@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:geolocation/geolocation.dart';
 import 'package:uplink_flutter/location.dart';
 import 'package:uplink_flutter/models/stop.dart';
-import 'package:vibrate/vibrate.dart';
 
 class StopView extends StatefulWidget {
   final BusStop stop;
