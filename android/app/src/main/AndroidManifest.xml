@@ -19,8 +19,9 @@
          FlutterApplication and put your custom class here. -->
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="uplink_flutter"
+        android:label="Uplink"
         android:icon="@mipmap/ic_launcher">
+        android:allowBackup="false"
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
